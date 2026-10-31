@@ -19,11 +19,13 @@ python -m pip install -r requirements.txt
 python producer/generate_events.py --count 100
 ```
 
-In a separate terminal run Spark using a local PySpark installation:
+In a separate terminal, start the consumer using `spark-submit` with the Kafka connector **matching the installed PySpark version** (example for PySpark 3.5.x / Scala 2.12):
 
 ```bash
-python consumer/stream.py
+spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.3 consumer/stream.py
 ```
+
+For this exact command, pin `pyspark==3.5.3` in your local environment. Other Spark versions require the corresponding package version. Do not assume that `python consumer/stream.py` alone installs the Kafka connector.
 
 Start the consumer before the producer to observe the events live. The streaming consumer uses a local checkpoint directory (`output/checkpoint`) to recover state. The `output` directory is ignored by Git.
 
