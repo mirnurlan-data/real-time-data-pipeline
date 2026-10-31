@@ -33,6 +33,10 @@ jobs:
         env:
           SPARK_LOCAL_IP: 127.0.0.1
         run: timeout 360s spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.3 consumer/stream.py --once
+      - name: Restart stream with existing checkpoint (no duplicate output)
+        env:
+          SPARK_LOCAL_IP: 127.0.0.1
+        run: timeout 360s spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.3 consumer/stream.py --once
       - name: Verify event counts, unique keys, and schema
         env:
           SPARK_LOCAL_IP: 127.0.0.1
