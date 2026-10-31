@@ -27,8 +27,8 @@ jobs:
         run: docker compose up -d --wait
       - name: Create topic
         run: docker compose exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --create --if-not-exists --topic sales-events --partitions 3 --replication-factor 1
-      - name: Produce deterministic synthetic events
-        run: python producer/generate_events.py --count 60
+      - name: Produce 60 valid and 4 adversarial synthetic events
+        run: python producer/generate_events.py --count 60 --adversarial
       - name: Spark streaming batch from Kafka to Parquet
         env:
           SPARK_LOCAL_IP: 127.0.0.1
@@ -37,7 +37,7 @@ jobs:
         env:
           SPARK_LOCAL_IP: 127.0.0.1
         run: timeout 360s spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.3 consumer/stream.py --once
-      - name: Verify event counts, unique keys, and schema
+      - name: Verify only 60 valid unique records survived
         env:
           SPARK_LOCAL_IP: 127.0.0.1
         run: python scripts/verify_output.py --expected 60
