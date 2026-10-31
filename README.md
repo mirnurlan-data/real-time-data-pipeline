@@ -33,3 +33,7 @@ This lab uses `pyspark==3.5.3`, and the Maven Kafka connector must match that Sp
 - No arbitrary speedups or latency claims are presented
 
 The Kafka service exposes plaintext on loopback for local development only.
+
+## Checkpoint recovery demonstration
+
+The CI workflow starts the Spark consumer twice against the **same topic and existing checkpoint**, with no new messages between runs. The quality gate then requires exactly 60 unique events in the Parquet output, showing the demo does not append duplicates on this clean restart scenario. This is **not** a test of crashes during a micro-batch, broker failure, network partition, or exactly-once end-to-end guarantees.
