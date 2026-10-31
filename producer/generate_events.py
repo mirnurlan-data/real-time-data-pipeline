@@ -34,11 +34,11 @@ def main():
     )
     try:
         for i in range(1, args.count + 1):
-            producer.send("sales-events", value=event_for(i))
+            producer.send("sales-events", value=event_for(i)).get(timeout=30)
         producer.flush()
     finally:
         producer.close()
-    print(f"Published {args.count} synthetic events")
+    print(f"Delivered {args.count} synthetic events")
 
 
 if __name__ == "__main__":

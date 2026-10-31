@@ -1,0 +1,52 @@
+name: Kafka Spark Integration CI
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  end-to-end:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run producer contract tests
+        run: python -m unittest discover -s tests -v
+      - name: Start isolated Kafka broker
+        run: docker compose up -d --wait
+      - name: Create topic
+        run: docker compose exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --create --if-not-exists --topic sales-events --partitions 3 --replication-factor 1
+      - name: Produce deterministic synthetic events
+        run: python producer/generate_events.py --count 60
+      - name: Spark streaming batch from Kafka to Parquet
+        env:
+          SPARK_LOCAL_IP: 127.0.0.1
+        run: timeout 360s spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.3 consumer/stream.py --once
+      - name: Verify event counts, unique keys, and schema
+        env:
+          SPARK_LOCAL_IP: 127.0.0.1
+        run: python scripts/verify_output.py --expected 60
+      - name: Upload validation summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: streaming-validation
+          path: output/validation.json
+          if-no-files-found: ignore
+      - name: Kafka broker logs if failed
+        if: failure()
+        run: docker compose logs --tail=100
+      - name: Stop demo broker
+        if: always()
+        run: docker compose down -v
