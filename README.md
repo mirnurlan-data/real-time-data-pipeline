@@ -19,7 +19,7 @@ SPARK_LOCAL_IP=127.0.0.1 spark-submit --packages org.apache.spark:spark-sql-kafk
 SPARK_LOCAL_IP=127.0.0.1 python scripts/verify_output.py --expected 60
 ```
 
-In adversarial mode, the producer publishes **60 valid + 4 intentionally duplicate/malformed/invalid events**. The expected Parquet output remains 60 unique valid IDs. Start from a clean local `output/` directory and reset the disposable Kafka instance to reproduce the exact count; existing checkpoints or topic messages affect it.
+In adversarial mode, the producer publishes **60 valid + 6 intentionally duplicate/malformed/invalid events**. The expected Parquet output remains 60 unique valid IDs. Start from a clean local `output/` directory and reset the disposable Kafka instance to reproduce the exact count; existing checkpoints or topic messages affect it.
 
 ## What CI actually verifies
 
