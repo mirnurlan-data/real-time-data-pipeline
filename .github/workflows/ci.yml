@@ -27,7 +27,7 @@ jobs:
         run: docker compose up -d --wait
       - name: Create topic
         run: docker compose exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --create --if-not-exists --topic sales-events --partitions 3 --replication-factor 1
-      - name: Produce 60 valid and 4 adversarial synthetic events
+      - name: Produce 60 valid and 6 adversarial synthetic events
         run: python producer/generate_events.py --count 60 --adversarial
       - name: Spark streaming batch from Kafka to Parquet
         env:
