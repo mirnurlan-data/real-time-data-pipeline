@@ -29,7 +29,9 @@ def adversarial_events() -> list:
     bad_quantity = {**event_for(2), "event_id": "bad-negative-quantity", "quantity": -4}
     missing_id = {**event_for(3), "event_id": None}
     bad_payload = "this is not a JSON object"
-    return [duplicate, bad_quantity, missing_id, bad_payload]
+    blank_id = {**event_for(4), "event_id": "   "}
+    bad_price = {**event_for(5), "event_id": "bad-infinite-price", "unit_price": float("inf")}
+    return [duplicate, bad_quantity, missing_id, bad_payload, blank_id, bad_price]
 
 
 def main():
