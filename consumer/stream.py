@@ -2,7 +2,7 @@
 import argparse
 from pathlib import Path
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, from_json, to_timestamp
+from pyspark.sql.functions import col, from_json, to_timestamp, trim, isnan
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DoubleType
 
 BASE = Path(__file__).resolve().parents[1]
@@ -37,11 +37,14 @@ def main():
         parsed = (raw.select(from_json(col("value").cast("string"), SCHEMA).alias("event"))
                   .select("event.*")
                   .filter(col("event_id").isNotNull() &
+                          (trim(col("event_id")) != "") &
                           col("event_time").isNotNull() &
                           col("store_id").isNotNull() &
                           col("product_id").isNotNull() &
                           (col("quantity") > 0) &
-                          (col("unit_price") > 0)))
+                          (col("unit_price") > 0) &
+                          (~isnan(col("unit_price"))) &
+                          (col("unit_price") != float("inf"))))
         clean = (parsed.withColumn("event_ts", to_timestamp("event_time"))
                  .filter(col("event_ts").isNotNull())
                  .withWatermark("event_ts", "10 minutes")
